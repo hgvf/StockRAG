@@ -10,7 +10,7 @@ COPY . /app/
 RUN apt-get update -y
 RUN apt-get install python3-pip -y
 RUN pip install --upgrade pip setuptools wheel
-# RUN pip3 install torch torchvision torchaudio 
+RUN pip install torch torchvision torchaudio 
 RUN pip install -r requirements.txt 
 
 
