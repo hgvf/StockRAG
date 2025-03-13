@@ -10,8 +10,8 @@ COPY . /app/
 RUN apt-get update -y
 RUN apt-get install python3-pip -y
 RUN pip install --upgrade pip setuptools wheel
-RUN pip install torch torchvision torchaudio 
-RUN pip install -r requirements.txt 
+RUN pip install torch torchvision torchaudio
+RUN pip install -r requirements.txt
 
 
 # 開放 API 端口，這裡假設使用 FastAPI 來提供服務
