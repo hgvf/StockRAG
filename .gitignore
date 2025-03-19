@@ -1,1 +1,15 @@
-volume/
+# files
+*.csv
+*.hdf5
+*.txt
+*.sh
+*.png
+*.ipynb
+
+# caches
+*.ipynb_checkpoints
+*__pycache__
+
+# directiories
+/papers
+/app_data/*
