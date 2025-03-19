@@ -1,8 +1,10 @@
+import time
+from datetime import datetime
+
 import numpy as np
 import pandas as pd
-import time
 import requests
-from datetime import datetime
+
 
 def MA(df: pd.DataFrame, n: int):
     """
@@ -12,11 +14,12 @@ def MA(df: pd.DataFrame, n: int):
     - df (pd.DataFrame): Pandas DataFrame containing daily stock prices (e.g., closing prices).
     - n (int): Lookback period for calculating the indicator.
 
-    Returns: 
+    Returns:
     - The calculated moving average (np.ndarray).
     """
 
-    return df['close'].rolling(n).mean().fillna(0).to_numpy()
+    return df["close"].rolling(n).mean().fillna(0).to_numpy()
+
 
 def KD(df: pd.DataFrame, n: int):
     """
@@ -32,28 +35,29 @@ def KD(df: pd.DataFrame, n: int):
 
     # Calculate RSV
     # (今日收盤價 – 最近n天的最低價) ÷ (最近n天的最高價 – 最近n天最低價) × 100
-    df['Lowest Low'] = df['close'].rolling(window=n).min()
-    df['Highest High'] = df['close'].rolling(window=n).max()
-    df[f"RSV{n}"] = 100 * (df['close'] - df['Lowest Low']) / \
-                         (df['Highest High'] - df['Lowest Low'])
+    df["Lowest Low"] = df["close"].rolling(window=n).min()
+    df["Highest High"] = df["close"].rolling(window=n).max()
+    df[f"RSV{n}"] = (
+        100 * (df["close"] - df["Lowest Low"]) / (df["Highest High"] - df["Lowest Low"])
+    )
     df = df.fillna(0)
     # ------------------------------------------------------------------------ #
     # Calculate K
     # 昨日K值 × (2/3) +今日RSV × (1/3)
-    
+
     # K value in the first n days
     k1 = []
     for i in range(8):
-        a = df[f"RSV{n}"].iloc[i] * (1/3)
+        a = df[f"RSV{n}"].iloc[i] * (1 / 3)
         k1.append(a)
 
     # K value after n days
     k2 = []
     k_temp = a
-    for i in range(len(df)-8):
-        k_temp = k_temp*2/3 + df[f"RSV{n}"].iloc[i+8]*(1/3)
+    for i in range(len(df) - 8):
+        k_temp = k_temp * 2 / 3 + df[f"RSV{n}"].iloc[i + 8] * (1 / 3)
         k2.append(k_temp)
-        
+
     df[f"K{n}"] = pd.Series(k1 + k2)
     # ------------------------------------------------------------------------ #
     # # Calculate K
@@ -61,19 +65,20 @@ def KD(df: pd.DataFrame, n: int):
     # D value in the first n days
     d1 = []
     for i in range(8):
-        a = df[f"K{n}"].iloc[i] * (1/3)
+        a = df[f"K{n}"].iloc[i] * (1 / 3)
         d1.append(a)
 
     # D value after n days
     d2 = []
     d_temp = a
-    for i in range(len(df)-8):
-        d_temp = d_temp*2/3 + df[f"K{n}"].iloc[i+8]*(1/3)
+    for i in range(len(df) - 8):
+        d_temp = d_temp * 2 / 3 + df[f"K{n}"].iloc[i + 8] * (1 / 3)
         d2.append(d_temp)
-        
+
     df[f"D{n}"] = pd.Series(d1 + d2)
-    
+
     return df[[f"K{n}", f"D{n}"]].fillna(0)
+
 
 def MACD(df: pd.DataFrame):
     """
@@ -85,27 +90,28 @@ def MACD(df: pd.DataFrame):
     Returns:
     - Pandas DataFrame with columns 'DIF', 'MACD' and 'histogram' representing the calculated DIF, MACD and the histogram values.
     """
-    df['EMA12'] = df['close'].ewm(span=12).mean()
-    df['EMA26'] = df['close'].ewm(span=26).mean()
+    df["EMA12"] = df["close"].ewm(span=12).mean()
+    df["EMA26"] = df["close"].ewm(span=26).mean()
 
-    df['DIF'] = df['EMA12'] - df['EMA26']
-    df['MACD'] = df['DIF'].rolling(9).mean().fillna(0)
-    df['histrogram'] = df['DIF'] - df['MACD']
-    
-    return df[['DIF', 'MACD', 'histrogram']]
+    df["DIF"] = df["EMA12"] - df["EMA26"]
+    df["MACD"] = df["DIF"].rolling(9).mean().fillna(0)
+    df["histrogram"] = df["DIF"] - df["MACD"]
+
+    return df[["DIF", "MACD", "histrogram"]]
+
 
 def RSI(df: pd.DataFrame, n: int):
     """
-    Calculate RSI 
+    Calculate RSI
 
     Parameters:
     - df (pd.DataFrame): Pandas DataFrame containing daily stock prices (e.g., closing prices).
     - n (int): Lookback period for calculating the indicator.
 
-    Returns: 
+    Returns:
     - The calculated RSI (np.ndarray).
     """
-    delta = df['spread']
+    delta = df["spread"]
 
     # 計算RSI值
     gain = delta.where(delta > 0, 0)
