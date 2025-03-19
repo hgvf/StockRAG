@@ -1,10 +1,12 @@
-import requests
-import pandas as pd
 import os
 import sys
 
+import pandas as pd
+import requests
 from telegram import Update
-from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
+from telegram.ext import (Application, CommandHandler, ContextTypes,
+                          MessageHandler, filters)
+
 
 # Define command handlers
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -20,45 +22,51 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     )
     await update.message.reply_text(commands)
 
+
 async def about(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Provide bot details."""
     await update.message.reply_text("來幫你賺錢的")
 
+
 async def contact(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Provide contact details."""
     await update.message.reply_text("聯絡 ->  gwtang@nlp.csie.ntust.edu.tw")
+
 
 async def punish(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """查詢處置股"""
 
     out_str = ""
 
-    resp = requests.post(url='https://openapi.twse.com.tw/v1/announcement/punish')
+    resp = requests.post(url="https://openapi.twse.com.tw/v1/announcement/punish")
     for stock in resp.json():
-        if stock['Code'] == "":
+        if stock["Code"] == "":
             break
         out_str += f"{stock['Code']} {stock['Name']} -> {stock['ReasonsOfDisposition']}, {stock['DispositionMeasures']}\n"
 
     out_str = "無" if out_str == "" else out_str
     await update.message.reply_text(out_str)
 
+
 async def warn(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """查詢警示股"""
 
     out_str = ""
 
-    resp = requests.post(url='https://openapi.twse.com.tw/v1/announcement/notice')
+    resp = requests.post(url="https://openapi.twse.com.tw/v1/announcement/notice")
     for stock in resp.json():
-        if stock['Code'] == "":
+        if stock["Code"] == "":
             break
         out_str += f"{stock['Code']} {stock['Name']} -> 第{stock['NumberOfAnnouncement']}次警示, PE: {stock['PE']}, {stock['TradingInfoForAttention']}\n"
 
     out_str = "無" if out_str == "" else out_str
     await update.message.reply_text(out_str)
 
+
 async def unknown(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle unknown commands."""
     await update.message.reply_text("公三小")
+
 
 def main():
     """Run the bot."""
@@ -80,6 +88,7 @@ def main():
     # Run the bot
     print("Bot is running...")
     app.run_polling()
+
 
 if __name__ == "__main__":
     main()
