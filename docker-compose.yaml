@@ -39,6 +39,8 @@ services:
 
         CMD ["/bin/bash"]
     container_name: rag_app
+    stdin_open: true
+    tty: true
     depends_on:
       - db  # 保留對 db 的依賴
     environment:
@@ -50,9 +52,8 @@ services:
     ports:
       - "8080:8080"  # 映射 8080 端口，與 EXPOSE 一致
     volumes:
-      - ./volume:/app  # 保留應用程式卷
+      - ./app_data:/app  # 保留應用程式卷
     restart: unless-stopped
 
 volumes:
-  db_data: 
-  app_data:
+  db_data:

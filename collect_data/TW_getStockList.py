@@ -36,8 +36,11 @@ def filter_data(data):
 
     return data
 
-if __name__ == "__main__":
+def main():
     data = get_allList()
     data = filter_data(data)
 
     data.to_csv('stockList.csv', index=False)
+
+if __name__ == "__main__":
+    main()
