@@ -3,12 +3,13 @@ from datetime import datetime, timedelta
 import numpy as np
 import pandas as pd
 import requests
-from FinMind.data import DataLoader
-from stock_func import *
 
 # === TW stock selection conditions ===
 # type: twse
-# industry_category: all except ['ETF', 'ETN', "Index", "上櫃ETF", "上櫃指數股票型基金(ETF)", "創新板股票", "創新版股票", '受益證券', '大盤', '存託憑證', '所有證券', '指數投資證券(ETN)']
+# industry_category: all except
+# ['ETF', 'ETN', "Index", "上櫃ETF",
+# "上櫃指數股票型基金(ETF)", "創新板股票", "創新版股票",
+# '受益證券', '大盤', '存託憑證', '所有證券', '指數投資證券(ETN)']
 # date: 大於距目前30天前有記錄都可以
 
 

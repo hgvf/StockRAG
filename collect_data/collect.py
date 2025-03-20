@@ -1,18 +1,15 @@
 import argparse
-import logging
-import os
-from datetime import datetime, timedelta
+import time
+from datetime import datetime
 
-import numpy as np
 import pandas as pd
 import psycopg2
 import requests
-from FinMind.data import DataLoader
 from logger import setLogger
-from stock_func import *
+from stock_func import KD, MACD
 
 
-def parse_args():
+def parse_args(logger):
     """
     User defined arguments
     """
@@ -33,7 +30,7 @@ def parse_args():
     return opt
 
 
-def getStockList():
+def getStockList(logger):
     """
     Collect stockList from stockList.csv
     """
@@ -46,7 +43,7 @@ def getStockList():
     return stockList
 
 
-def getTokenURL():
+def getTokenURL(logger):
     """
     Get FinMind's token and URL
     """
@@ -70,7 +67,7 @@ def convert_dateFormat(date):
     return f"{date[:4]}{date[5:7]}{date[8:10]}"
 
 
-def saveHistory(stockList, start_date, timeout, url, token, conn, cur, subset):
+def saveHistory(stockList, start_date, timeout, url, token, conn, cur, subset, logger):
     """
     保存符合 event-triggered 條件的線圖，保存至 DB
     """
@@ -195,11 +192,11 @@ def saveHistory(stockList, start_date, timeout, url, token, conn, cur, subset):
         ]
 
         # 存進 DB
-        cnt_prev = SaveToDB(df, m_df, conn, cur, subset, history_id, acc_cnt)
+        cnt_prev = SaveToDB(df, m_df, conn, cur, subset, history_id, acc_cnt, logger)
         acc_cnt += cnt_prev
 
 
-def SaveToDB(df, m_df, conn, cur, subset, history_id, acc_cnt):
+def SaveToDB(df, m_df, conn, cur, subset, history_id, acc_cnt, logger):
     """
     把符合條件的 row 存進 DB
     """
@@ -218,7 +215,7 @@ def SaveToDB(df, m_df, conn, cur, subset, history_id, acc_cnt):
         cur_price = df.iloc[start : end + 1]["close"].tolist()
         cur_vol = df.iloc[start : end + 1]["Trading_Volume"].tolist()
         cur_vol = [i / 1000 for i in cur_vol]
-        cur_skillMetric = f"{str(row['macd_gc'])},{str(row['his'])},{str(row['kd_gc'])},{str(row['volume_emerge'])},{str(row['spread_emerge'])},{str(row['volume_emerge_large'])}"
+        cur_skillMetric = f"{str(row['macd_gc'])}, {str(row['his'])}, {str(row['kd_gc'])}, {str(row['volume_emerge'])}, {str(row['spread_emerge'])}, {str(row['volume_emerge_large'])}"
         cur_skillMetric = "{" + cur_skillMetric + "}"
 
         logger.info("=-" * 60)
@@ -237,7 +234,12 @@ def SaveToDB(df, m_df, conn, cur, subset, history_id, acc_cnt):
 
         # insert to TW_HistoryLog
         sql = """
-            INSERT INTO TW_HistoryLog (StockID, StartDate, EndDate, Category)
+            INSERT INTO TW_HistoryLog (
+                StockID,
+                StartDate,
+                EndDate,
+                Category
+            )
             VALUES (%s, %s, %s, %s)
         """
         try:
@@ -250,7 +252,12 @@ def SaveToDB(df, m_df, conn, cur, subset, history_id, acc_cnt):
 
         # insert to TW_MomentumInfo
         sql = """
-            INSERT INTO TW_MomentumInfo (HistoryID, Price, Volume, SkillMetric)
+            INSERT INTO TW_MomentumInfo (
+                HistoryID,
+                Price,
+                Volume,
+                SkillMetric
+            )
             VALUES (%s, %s, %s, %s)
         """
         try:
@@ -263,7 +270,11 @@ def SaveToDB(df, m_df, conn, cur, subset, history_id, acc_cnt):
 
         # insert to TW_MomentumInfo
         sql = """
-            INSERT INTO TW_MomentumDataHistory (StockID, HistoryID, TimeInterval)
+            INSERT INTO TW_MomentumDataHistory (
+                StockID,
+                HistoryID,
+                TimeInterval
+            )
             VALUES (%s, %s, %s)
         """
         try:
@@ -279,7 +290,7 @@ def SaveToDB(df, m_df, conn, cur, subset, history_id, acc_cnt):
     return cnt
 
 
-def loadDB():
+def loadDB(logger):
     """
     Create a connection to PostgreSQL
     """
@@ -296,18 +307,25 @@ def loadDB():
 
 
 def main():
-    opt = parse_args()
-
-    global logger
     logger = setLogger(opt.subset)
 
-    stockList = getStockList()
+    opt = parse_args(logger)
 
-    conn, cur = loadDB()
-    token, url = getTokenURL()
+    stockList = getStockList(logger)
+
+    conn, cur = loadDB(logger)
+    token, url = getTokenURL(logger)
 
     saveHistory(
-        stockList, opt.start_date, opt.timeout, url, token, conn, cur, opt.subset
+        stockList,
+        opt.start_date,
+        opt.timeout,
+        url,
+        token,
+        conn,
+        cur,
+        opt.subset,
+        logger,
     )
 
 
