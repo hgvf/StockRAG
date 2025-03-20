@@ -21,7 +21,7 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
 async def about(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Provide bot details."""
-    await update.message.reply_text("來幫你賺錢的")
+    await update.message.reply_text("來幫你賺錢的!")
 
 
 async def contact(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
