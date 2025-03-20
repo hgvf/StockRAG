@@ -56,4 +56,4 @@ services:
     restart: unless-stopped
 
 volumes:
-  db_data:
+  db_data: # 存在 docker 的 volume，而不是本機端
