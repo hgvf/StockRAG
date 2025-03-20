@@ -1,9 +1,4 @@
-import time
-from datetime import datetime
-
-import numpy as np
 import pandas as pd
-import requests
 
 
 def MA(df: pd.DataFrame, n: int):
@@ -11,8 +6,10 @@ def MA(df: pd.DataFrame, n: int):
     Calcualte the moving average
 
     Parameters:
-    - df (pd.DataFrame): Pandas DataFrame containing daily stock prices (e.g., closing prices).
-    - n (int): Lookback period for calculating the indicator.
+    - df (pd.DataFrame):
+        Pandas DataFrame containing daily stock prices (e.g., closing prices).
+    - n (int):
+        Lookback period for calculating the indicator.
 
     Returns:
     - The calculated moving average (np.ndarray).
@@ -26,11 +23,15 @@ def KD(df: pd.DataFrame, n: int):
     Calculate the KD (Stochastic Oscillator) indicator using daily stock prices.
 
     Parameters:
-    - df (pd.DataFrame): Pandas DataFrame containing daily stock prices (e.g., closing prices).
-    - n (int): Lookback period for calculating the indicator.
+    - df (pd.DataFrame):
+        Pandas DataFrame containing daily stock prices (e.g., closing prices).
+    - n (int):
+        Lookback period for calculating the indicator.
 
     Returns:
-    - Pandas DataFrame with columns 'K' and 'D' representing the calculated KD values.
+    - Pandas DataFrame with columns
+        'K' and 'D'
+        representing the calculated KD values.
     """
 
     # Calculate RSV
@@ -41,7 +42,7 @@ def KD(df: pd.DataFrame, n: int):
         100 * (df["close"] - df["Lowest Low"]) / (df["Highest High"] - df["Lowest Low"])
     )
     df = df.fillna(0)
-    # ------------------------------------------------------------------------ #
+
     # Calculate K
     # 昨日K值 × (2/3) +今日RSV × (1/3)
 
@@ -59,7 +60,7 @@ def KD(df: pd.DataFrame, n: int):
         k2.append(k_temp)
 
     df[f"K{n}"] = pd.Series(k1 + k2)
-    # ------------------------------------------------------------------------ #
+
     # # Calculate K
     # 今日D值 = 昨日D值 × (2/3) +今日K值 × ( 1/3)
     # D value in the first n days
@@ -85,10 +86,14 @@ def MACD(df: pd.DataFrame):
     Calculate the MACD, DIF, and the histrogram between MACD and DIF
 
     Parameters:
-    - df (pd.DataFrame): Pandas DataFrame containing daily stock prices (e.g., closing prices).
+    - df (pd.DataFrame):
+        Pandas DataFrame containing daily stock prices
+        (e.g., closing prices).
 
     Returns:
-    - Pandas DataFrame with columns 'DIF', 'MACD' and 'histogram' representing the calculated DIF, MACD and the histogram values.
+    - Pandas DataFrame with columns
+        'DIF', 'MACD' and 'histogram'
+        representing the calculated DIF, MACD and the histogram values.
     """
     df["EMA12"] = df["close"].ewm(span=12).mean()
     df["EMA26"] = df["close"].ewm(span=26).mean()
@@ -105,8 +110,10 @@ def RSI(df: pd.DataFrame, n: int):
     Calculate RSI
 
     Parameters:
-    - df (pd.DataFrame): Pandas DataFrame containing daily stock prices (e.g., closing prices).
-    - n (int): Lookback period for calculating the indicator.
+    - df (pd.DataFrame):
+        Pandas DataFrame containing daily stock prices (e.g., closing prices).
+    - n (int):
+        Lookback period for calculating the indicator.
 
     Returns:
     - The calculated RSI (np.ndarray).

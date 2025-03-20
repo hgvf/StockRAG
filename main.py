@@ -1,7 +1,3 @@
-import os
-import sys
-
-import pandas as pd
 import requests
 from telegram import Update
 from telegram.ext import (Application, CommandHandler, ContextTypes,
@@ -81,7 +77,6 @@ def main():
     app.add_handler(CommandHandler("contact", contact))
     app.add_handler(CommandHandler("punish", punish))
     app.add_handler(CommandHandler("warn", warn))
-
     # Handle unknown messages
     app.add_handler(MessageHandler(filters.COMMAND, unknown))
 
