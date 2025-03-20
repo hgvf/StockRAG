@@ -6,10 +6,6 @@ repos:
         args: ['--maxkb=1000']
       - id: end-of-file-fixer
       - id: trailing-whitespace
-  - repo: https://github.com/psf/black
-    rev: 23.3.0
-    hooks:
-      - id: black
   - repo: https://github.com/PyCQA/isort
     rev: 6.0.1
     hooks:
