@@ -195,6 +195,10 @@ def saveHistory(stockList, start_date, timeout, url, token, conn, cur, subset, l
         cnt_prev = SaveToDB(df, m_df, conn, cur, subset, history_id, acc_cnt, logger)
         acc_cnt += cnt_prev
 
+        logger.info("=-" * 60)
+        logger.info("Saving data: ")
+        logger.info(f"\t\tStock: {stock}")
+        logger.info(f"Total: [{cnt_prev}] cases.")
 
 def SaveToDB(df, m_df, conn, cur, subset, history_id, acc_cnt, logger):
     """
@@ -204,8 +208,6 @@ def SaveToDB(df, m_df, conn, cur, subset, history_id, acc_cnt, logger):
     cnt = 0
     for idx, row in m_df.iterrows():
         h_idx = history_id + cnt + acc_cnt + 1
-        print(history_id, cnt, acc_cnt)
-        logger.info(f"Saving history_id: {h_idx}")
 
         start = row.name - 3 if row.name - 3 >= 0 else 0
         end = row.name + 40 if row.name + 40 < len(df) else len(df) - 1
@@ -217,11 +219,6 @@ def SaveToDB(df, m_df, conn, cur, subset, history_id, acc_cnt, logger):
         cur_vol = [i / 1000 for i in cur_vol]
         cur_skillMetric = f"{str(row['macd_gc'])}, {str(row['his'])}, {str(row['kd_gc'])}, {str(row['volume_emerge'])}, {str(row['spread_emerge'])}, {str(row['volume_emerge_large'])}"
         cur_skillMetric = "{" + cur_skillMetric + "}"
-
-        logger.info("=-" * 60)
-        logger.info("Saving data: ")
-        logger.info(f"\t\tStock: {row['stock_id']}")
-        logger.info(f"\t\tTime interval: {start_date}-{end_date}")
 
         toInsert1 = (row["stock_id"], start_date, end_date, subset)
 
