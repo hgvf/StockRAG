@@ -2,7 +2,7 @@ import requests
 from telegram import Update
 from telegram.ext import (Application, CommandHandler, ContextTypes,
                           MessageHandler, filters)
-
+from query_similar import query_sim
 
 # Define command handlers
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -15,6 +15,8 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         "/punish - 查詢今日處置股\n"
         "/warn - 查詢今日警示股\n"
         "/refreshStock - 更新資料庫的標的列表\n"
+        "/similar_price <個股代碼> - 以給定標的近期的股價趨勢圖，找尋相關歷史事件\n"
+        "/similar_vol <個股代碼> - 以給定標的近期的成交量趨勢圖，找尋相關歷史事件\n"
     )
     await update.message.reply_text(commands)
 
@@ -58,6 +60,17 @@ async def warn(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     out_str = "無" if out_str == "" else out_str
     await update.message.reply_text(out_str)
 
+async def similar_price(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """以給定標的近期的股價趨勢圖，找尋相關歷史事件"""
+    stockID = str(update.message.text.split(" ")[-1])
+    out_str = query_sim(stockID, 'price')
+    await update.message.reply_text(out_str)
+
+async def similar_vol(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """以給定標的近期的成交量趨勢圖，找尋相關歷史事件"""
+    stockID = str(update.message.text.split(" ")[-1])
+    out_str = query_sim(stockID, 'vol')
+    await update.message.reply_text(out_str)
 
 async def unknown(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle unknown commands."""
@@ -77,6 +90,9 @@ def main():
     app.add_handler(CommandHandler("contact", contact))
     app.add_handler(CommandHandler("punish", punish))
     app.add_handler(CommandHandler("warn", warn))
+    app.add_handler(CommandHandler("similar_vol", similar_vol))
+    app.add_handler(CommandHandler("similar_price", similar_price))
+    
     # Handle unknown messages
     app.add_handler(MessageHandler(filters.COMMAND, unknown))
 
