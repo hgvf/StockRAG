@@ -1,7 +1,9 @@
+from datetime import datetime, timedelta
+
+import pandas as pd
 import psycopg2
 import requests
-import pandas as pd
-from datetime import datetime, timedelta
+
 
 def get_query(query_stockID, flag):
     # get token and url
@@ -45,7 +47,7 @@ def collect_output(price_res, vol_res, cur, flag):
 
     price_output = []
     vol_output = []
-    
+
     # Price
     if flag == 'price':
         for r in price_res:
@@ -58,7 +60,7 @@ def collect_output(price_res, vol_res, cur, flag):
             res = cur.fetchall()
             cur_output.append(res[0][0]) # stockID
             cur_output.append(res[0][-1]) # time interval
-            
+
             price_output.append(cur_output)
     # Volume
     else:
@@ -72,7 +74,7 @@ def collect_output(price_res, vol_res, cur, flag):
             res = cur.fetchall()
             cur_output.append(res[0][0]) # stockID
             cur_output.append(res[0][-1]) # time interval
-            
+
             vol_output.append(cur_output)
 
     return price_output, vol_output
@@ -99,7 +101,7 @@ def exe_SQL(cur, query_close, query_volume, flag):
 
         # 獲取結果
         price_res = cur.fetchall()
-    
+
     else:
         # 執行查詢 (成交量)
         query_sql = """
@@ -156,7 +158,7 @@ def query_sim(query_stockID, flag):
 
     # 執行 SQL 取得 similar trend
     price_res, vol_res = exe_SQL(cur, query_close, query_volume, flag)
-    
+
     # 蒐集要回傳的資料
     price_output, vol_output = collect_output(price_res, vol_res, cur, flag)
 
