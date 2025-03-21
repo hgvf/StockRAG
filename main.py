@@ -2,7 +2,9 @@ import requests
 from telegram import Update
 from telegram.ext import (Application, CommandHandler, ContextTypes,
                           MessageHandler, filters)
+
 from query_similar import query_sim
+
 
 # Define command handlers
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -92,7 +94,7 @@ def main():
     app.add_handler(CommandHandler("warn", warn))
     app.add_handler(CommandHandler("similar_vol", similar_vol))
     app.add_handler(CommandHandler("similar_price", similar_price))
-    
+
     # Handle unknown messages
     app.add_handler(MessageHandler(filters.COMMAND, unknown))
 
