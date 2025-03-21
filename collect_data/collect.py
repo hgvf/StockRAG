@@ -9,7 +9,7 @@ from logger import setLogger
 from stock_func import KD, MACD
 
 
-def parse_args(logger):
+def parse_args():
     """
     User defined arguments
     """
@@ -25,7 +25,7 @@ def parse_args(logger):
 
     opt = parser.parse_args()
 
-    assert opt.subset in ["TW", "US"], logger.debug("Subset must in ['TW', 'US'].")
+    assert opt.subset in ["TW", "US"], print("Subset must in ['TW', 'US'].")
 
     return opt
 
@@ -80,6 +80,17 @@ def saveHistory(stockList, start_date, timeout, url, token, conn, cur, subset, l
     logger.info(f"Start-date: {start_date}, End-date: {end_date}")
     logger.info(f"Setting number of requests per hour of FinMind to ... {timeout}")
 
+    sql = """
+        INSERT INTO EXE_history (start_date, end_date)
+        VALUES (%s, %s)
+    """
+    toInsert = (
+        start_date,
+        end_date
+    )
+    cur.execute(sql, toInsert)
+    conn.commit()
+
     # get the number of data in TW_MomentumInfo as history_id
     cur.execute("SELECT * FROM TW_MomentumInfo")
     res = cur.fetchall()
@@ -89,14 +100,17 @@ def saveHistory(stockList, start_date, timeout, url, token, conn, cur, subset, l
     act_time = time.time()
     cnt_prev = 0
     acc_cnt = 0
+    sleep_time = 1
     for cnt, stock in enumerate(stockList):
+        logger.info("=-" * 60)
         logger.info(f"Number...{cnt}")
         logger.info(f"Fetching stock -> {stock}")
 
         # sleep, preventing from service limit of FinMind
-        if cnt >= timeout:
+        if cnt >= (timeout*sleep_time):
             logger.info("Pending for hour...")
             time.sleep(int(3600 - (time.time() - act_time)))
+            sleep_time += 1
 
         # send request
         parameter = {
@@ -108,7 +122,11 @@ def saveHistory(stockList, start_date, timeout, url, token, conn, cur, subset, l
         }
         resp = requests.get(url, params=parameter)
         data = resp.json()
-        df = pd.DataFrame(data["data"])
+        try:
+            df = pd.DataFrame(data["data"])
+        except Exception as e:
+            logger.debug(f"Exception: {e}")
+            continue
 
         # MACD
         macd = MACD(df)
@@ -195,7 +213,6 @@ def saveHistory(stockList, start_date, timeout, url, token, conn, cur, subset, l
         cnt_prev = SaveToDB(df, m_df, conn, cur, subset, history_id, acc_cnt, logger)
         acc_cnt += cnt_prev
 
-        logger.info("=-" * 60)
         logger.info("Saving data: ")
         logger.info(f"\t\tStock: {stock}")
         logger.info(f"Total: [{cnt_prev}] cases.")
@@ -300,30 +317,90 @@ def loadDB(logger):
 
     logger.info("Connecting to PostgreSQL...")
 
+
+    cur.execute("""
+            CREATE TABLE IF NOT EXISTS TW_MomentumInfo (
+                HistoryID VARCHAR(40) PRIMARY KEY,
+                Price FLOAT[],
+                Volume FLOAT[],
+                SkillMetric TEXT[]
+            );
+    """
+    )
+    conn.commit()
+
+    cur.execute("""
+            CREATE TABLE IF NOT EXISTS TW_MomentumDataHistory (
+                StockID VARCHAR(20),
+                HistoryID VARCHAR(50) PRIMARY KEY,
+                TimeInterval VARCHAR(30)
+            );
+    """
+    )
+    conn.commit()
+
+    cur.execute("""
+            CREATE TABLE IF NOT EXISTS TW_HistoryLog (
+                StockID VARCHAR(20),
+                StartDate DATE,
+                EndDate DATE,
+                Category VARCHAR(20),
+                PRIMARY KEY (StockID, StartDate)
+            );
+    """
+    )
+    conn.commit()
+
+    cur.execute("""
+            CREATE TABLE IF NOT EXISTS EXE_history (
+                start_date DATE, 
+                end_date DATE
+            );
+        """)
+    conn.commit()
+
     return conn, cur
 
 
 def main():
-    logger = setLogger(opt.subset)
+    opt = parse_args()
 
-    opt = parse_args(logger)
+    logger = setLogger(opt.subset)
 
     stockList = getStockList(logger)
 
     conn, cur = loadDB(logger)
-    token, url = getTokenURL(logger)
 
-    saveHistory(
-        stockList,
-        opt.start_date,
-        opt.timeout,
-        url,
-        token,
-        conn,
-        cur,
-        opt.subset,
-        logger,
-    )
+    # 檢查時間區間是否已經有蒐集過
+    sql = f"SELECT * FROM EXE_history;"
+    cur.execute(sql)
+    res = cur.fetchall()
+
+    isProcessed = False
+    for record in res:
+        startt = record[0]
+        endt = record[1]
+
+        if (endt > datetime.strptime(opt.start_date, '%Y-%m-%d').date() > startt) or (endt > datetime.now() > startt):
+            isProcessed = True
+            break
+    
+    if not isProcessed:
+        logger.info(f"{opt.start_date}-{datetime.now().strftime('%Y-%m-%d')} is collected already.")
+    else:
+        token, url = getTokenURL(logger)
+
+        saveHistory(
+            stockList,
+            opt.start_date,
+            opt.timeout,
+            url,
+            token,
+            conn,
+            cur,
+            opt.subset,
+            logger,
+        )
 
 
 if __name__ == "__main__":
