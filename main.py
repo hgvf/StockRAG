@@ -81,7 +81,7 @@ async def unknown(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 def main():
     """Run the bot."""
-    TOKEN = "7380247567:AAFlYvJtQKQpgjNpAYFmEROijUW9z1bxFuQ"  # Replace with your actual bot token
+    TOKEN = ""  # Replace with your actual bot token
 
     # Create application
     app = Application.builder().token(TOKEN).build()
